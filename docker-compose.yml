@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # BASE DE DONNÉES POSTGRESQL
+  # =============================================================================
+  database:
+    image: postgres:15-alpine
+    container_name: freetube_database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-freetube_db}
+      POSTGRES_USER: ${POSTGRES_USER:-freetube_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-freetube_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
+      - ./database/seeds:/docker-entrypoint-initdb.d/seeds:ro
+      - ./database/init-scripts:/docker-entrypoint-initdb.d/init-scripts:ro
+    networks:
+      - freetube_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-freetube_user} -d ${POSTGRES_DB:-freetube_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # BACKEND NESTJS (sera ajouté en Phase 3)
+  # =============================================================================
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: freetube_backend
+  #   restart: unless-stopped
+  #   environment:
+  #     NODE_ENV: development
+  #     DB_HOST: database
+  #     DB_PORT: 5432
+  #     DB_USERNAME: ${POSTGRES_USER:-freetube_user}
+  #     DB_PASSWORD: ${POSTGRES_PASSWORD:-freetube_password}
+  #     DB_NAME: ${POSTGRES_DB:-freetube_db}
+  #     JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_here}
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     database:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./backend:/app
+  #     - /app/node_modules
+  #     - uploads_data:/app/uploads
+  #   networks:
+  #     - freetube_network
+
+  # =============================================================================
+  # FRONTEND ANGULAR (sera ajouté en Phase 4)
+  # =============================================================================
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: freetube_frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "4200:80"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - freetube_network
+
+  # =============================================================================
+  # REDIS POUR CACHE (optionnel, sera ajouté plus tard)
+  # =============================================================================
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: freetube_redis
+  #   restart: unless-stopped
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - freetube_network
+  #   command: redis-server --appendonly yes
+
+  # =============================================================================
+  # ADMINER POUR GESTION BDD (développement uniquement)
+  # =============================================================================
+  adminer:
+    image: adminer:latest
+    container_name: freetube_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    networks:
+      - freetube_network
+
+# =============================================================================
+# VOLUMES PERSISTANTS
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+    name: freetube_postgres_data
+  
+  uploads_data:
+    driver: local
+    name: freetube_uploads_data
+  
+  # redis_data:
+  #   driver: local
+  #   name: freetube_redis_data
+
+# =============================================================================
+# RÉSEAU INTERNE
+# =============================================================================
+networks:
+  freetube_network:
+    driver: bridge
+    name: freetube_network

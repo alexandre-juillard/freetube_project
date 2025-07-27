@@ -1,0 +1,37 @@
+{
+  "name": "freetube",
+  "version": "1.0.0",
+  "description": "Plateforme de partage vidéo alternative à YouTube",
+  "main": "index.js",
+  "scripts": {
+    "dev:frontend": "cd frontend && ng serve",
+    "dev:backend": "cd backend && npm run start:dev",
+    "build:frontend": "cd frontend && ng build",
+    "build:backend": "cd backend && npm run build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "test:frontend": "cd frontend && ng test",
+    "test:backend": "cd backend && npm run test",
+    "lint:frontend": "cd frontend && ng lint",
+    "lint:backend": "cd backend && npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexandre-juillard/freetube_project.git"
+  },
+  "keywords": [
+    "video",
+    "streaming",
+    "angular",
+    "nestjs",
+    "postgresql",
+    "docker"
+  ],
+  "author": "Framinfo",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
